@@ -1,0 +1,19 @@
+{
+  "name": "asatec-website",
+  "version": "1.0.0",
+  "description": "ASATEC Website - Serverless Edition",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build completed'",
+    "deploy": "vercel --prod",
+    "preview": "vercel"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vercel/node": "^3.0.0",
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
