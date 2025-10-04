@@ -44,20 +44,26 @@ def init_db():
         
         db = SessionLocal()
         try:
-            existing_admin = db.query(User).filter(User.email == "admin@asatec.com").first()
-            if not existing_admin:
-                admin_user = User(
-                    email="admin@asatec.com",
-                    password_hash=get_password_hash("admin123"),
-                    first_name="Admin",
-                    last_name="User",
-                    role="admin"
-                )
-                db.add(admin_user)
-                db.commit()
-                print("Default admin user created")
-        finally:
-            db.close()
+            admin_email = os.getenv("ADMIN_EMAIL")
+            admin_password = os.getenv("ADMIN_PASSWORD")
+            if not admin_email or not admin_password:
+                print("Warning: ADMIN_EMAIL or ADMIN_PASSWORD environment variables are not set. Default admin user will not be created.")
+            else:
+                existing_admin = db.query(User).filter(User.email == admin_email).first()
+                if not existing_admin:
+                    admin_user = User(
+                        email=admin_email,
+                        password_hash=get_password_hash(admin_password),
+                        first_name="Admin",
+                        last_name="User",
+                        role="admin"
+                    )
+                    db.add(admin_user)
+                    db.commit()
+        import logging
+        logging.error("Database initialization error", exc_info=True)
+        # In production, you might want to handle this differently
+        pass
             
     except Exception as e:
         print(f"Database initialization error: {e}")

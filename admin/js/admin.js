@@ -1,18 +1,11 @@
 // ASATEC Admin Panel JavaScript
 
+import { getApiBaseUrl } from './utils.js';
+
 class AdminPanel {
     constructor() {
-        // Auto-detect base URL for Vercel deployment
-if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname.includes('vercel.app') || hostname.includes('localhost')) {
-        this.API_BASE_URL = window.location.origin + '/api';
-    } else {
-        this.API_BASE_URL = '/api'; // Production with custom domain
-    }
-} else {
-    this.API_BASE_URL = '/api';
-}
+        // Use shared utility for API base URL detection
+        this.API_BASE_URL = getApiBaseUrl();
         this.currentPage = 'dashboard';
         this.init();
     }

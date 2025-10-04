@@ -35,8 +35,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:3001", 
         "https://your-domain.vercel.app",
-        "https://your-domain.com",
-        "*"  # Remove in production
+        "https://your-domain.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -73,16 +72,41 @@ async def health_check():
 
 # Auth endpoints
 @app.post("/api/auth/login", response_model=TokenResponse)
-async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+from fastapi import Request
+import time
+from collections import defaultdict
+
+# Simple in-memory rate limiter (reset every 15 minutes)
+login_attempts = defaultdict(list)
+MAX_ATTEMPTS = 5
+WINDOW_SECONDS = 900  # 15 minutes
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+async def login(
+    user_credentials: UserLogin, 
+    db: Session = Depends(get_db), 
+    request: Request = None
+):
+    client_ip = request.client.host if request else "unknown"
+    now = time.time()
+    # Clean up old attempts
+    login_attempts[client_ip] = [t for t in login_attempts[client_ip] if now - t < WINDOW_SECONDS]
+    if len(login_attempts[client_ip]) >= MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many login attempts. Please try again later."
+        )
     user = get_user_by_email(db, user_credentials.email)
     if not user or not verify_password(user_credentials.password, user.password_hash):
+        login_attempts[client_ip].append(now)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
+    # Reset attempts on successful login
+    login_attempts[client_ip] = []
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
-
 @app.get("/api/auth/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user

@@ -40,7 +40,7 @@ class AsatecAPI {
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('API request failed:', error);
+            console.error('API request failed. Please try again later.');
             throw error;
         }
     }

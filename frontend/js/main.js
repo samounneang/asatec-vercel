@@ -2,7 +2,10 @@
 
 class AsatecWebsite {
     constructor() {
-        this.API_BASE_URL = 'http://localhost:5000/api';
+        this.API_BASE_URL =
+            window.API_BASE_URL ||
+            (typeof process !== 'undefined' && process.env && process.env.API_BASE_URL) ||
+            `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/api`;
         this.init();
     }
 
